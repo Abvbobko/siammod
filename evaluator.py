@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import generator
 import numpy as np
 
 
