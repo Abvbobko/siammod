@@ -67,6 +67,28 @@ class QueueingSystem:
             self.service_line_2.free()
             sl_2_status = 0
 
+        queue_size = self.queue.get_current_size()
+        if queue_size == 0:
+            pass
+        elif queue_size == 1:
+            if sl_1_status == 0:
+                self.service_line_1.give_work()
+                sl_1_status = 1
+                self.queue.pop()
+            elif sl_2_status == 0:
+                self.service_line_2.give_work()
+                sl_2_status = 1
+                self.queue.pop()
+        elif queue_size == 2:
+            if sl_1_status == 0:
+                self.service_line_1.give_work()
+                sl_1_status = 1
+                self.queue.pop()
+            if sl_2_status == 0:
+                self.service_line_2.give_work()
+                sl_2_status = 1
+                self.queue.pop()
+
         if request == 1:
             if sl_1_status == 0:
                 self.service_line_1.give_work()
@@ -79,7 +101,11 @@ class QueueingSystem:
             elif self.queue.push():
                 is_request_serviced = True
 
-        return f'{self.queue.get_current_size()}{sl_1_status}{sl_2_status}', is_request_serviced
+        return (
+            f'{self.queue.get_current_size()}{sl_1_status}{sl_2_status}',
+            is_request_serviced,
+            request
+        )
 
     def source(self):
         if self.event(self.ro):
