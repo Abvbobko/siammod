@@ -16,6 +16,8 @@ if __name__ == '__main__':
     requests_in_system = []
     line_1_busy = 0
     line_2_busy = 0
+
+    num_of_rejected = 0
     d = {
         "000": 0,
         "001": 0,
@@ -26,8 +28,8 @@ if __name__ == '__main__':
     }
 
     for i in range(num_of_tacts):
-        status, is_serviced, is_new_request = queueing_system.tact()
-        print(status, is_serviced)
+        status, num_of_serviced, is_new_request, rejected = queueing_system.tact()
+        print(status, num_of_serviced)
         requests_in_system.append(int(status[0]) + int(status[1]) + int(status[2]))
         d[status] += 1
         if int(status[1]) == 1:
@@ -35,9 +37,12 @@ if __name__ == '__main__':
         if int(status[2]) == 1:
             line_2_busy += 1
         queue_sizes.append(int(status[0]))
-        if is_serviced:
-            true_serviced += 1
+        # if num_of_serviced:
+        true_serviced += num_of_serviced
         lmbd += is_new_request
+        if rejected:
+            num_of_rejected += 1
+
 
     A = true_serviced/num_of_tacts
     print("A:", A)
@@ -45,12 +50,13 @@ if __name__ == '__main__':
     print("lambda:", lmbd)
     Q = A/lmbd
     print("Q:", Q)
+    print("Prej:", num_of_rejected/num_of_tacts)
     print("Pотк:", 1-Q)
     L_queue = math_expectation(queue_sizes)
     print("Lоч:", L_queue)
     L_s = math_expectation(requests_in_system)
     print("Lc:", L_s)
-    print("Wоч:", L_queue/A)
+    print("Wоч:", L_queue / A)
     print("Wс:", L_s / A)
     print("K_кан1:", line_1_busy / num_of_tacts)
     print("K_кан2:", line_2_busy / num_of_tacts)

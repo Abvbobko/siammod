@@ -54,18 +54,26 @@ class QueueingSystem:
             return True
         return False
 
+    @staticmethod
+    def get_service_lines_statuses(service_lines):
+        return [service_line.get_status() for service_line in service_lines]
+
     def tact(self):
         request = self.source()
-        is_request_serviced = False
-        sl_1_status = self.service_line_1.get_status()
-        sl_2_status = self.service_line_1.get_status()
+        num_of_serviced = 0
+        is_rejected = False
+        sl_1_status, sl_2_status = self.get_service_lines_statuses([self.service_line_1, self.service_line_2])
+        # sl_1_status = self.service_line_1.get_status()
+        # sl_2_status = self.service_line_2.get_status()
         if sl_1_status == 1 and self.event(1 - self.p1):
             self.service_line_1.free()
             sl_1_status = 0
+            num_of_serviced += 1
 
         if sl_2_status == 1 and self.event(1 - self.p2):
             self.service_line_2.free()
             sl_2_status = 0
+            num_of_serviced += 1
 
         queue_size = self.queue.get_current_size()
         if queue_size == 0:
@@ -92,19 +100,21 @@ class QueueingSystem:
         if request == 1:
             if sl_1_status == 0:
                 self.service_line_1.give_work()
-                is_request_serviced = True
+                # is_request_serviced = True
                 sl_1_status = 1
             elif sl_2_status == 0:
                 self.service_line_2.give_work()
-                is_request_serviced = True
+                # is_request_serviced = True
                 sl_2_status = 1
-            elif self.queue.push():
-                is_request_serviced = True
+            elif not self.queue.push():
+                is_rejected = True
+                # is_request_serviced = True
 
         return (
             f'{self.queue.get_current_size()}{sl_1_status}{sl_2_status}',
-            is_request_serviced,
-            request
+            num_of_serviced,
+            request,
+            is_rejected
         )
 
     def source(self):
