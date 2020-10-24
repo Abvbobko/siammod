@@ -120,7 +120,7 @@ class QueueingSystem:
                 self.last_tact_info['time_in_queue'].append(request_from_queue.get_time())
                 self.service_line_2.give_work(request_from_queue)
                 sl_2_status = 1
-        elif queue_size == 2:
+        elif queue_size >= 2:
             if sl_1_status == 0:
                 request_from_queue = self.queue.pop()
                 self.last_tact_info['time_in_queue'].append(request_from_queue.get_time())

@@ -20,14 +20,6 @@ if __name__ == '__main__':
     line_2_busy = 0
 
     num_of_rejected = 0
-    states = {
-        "000": 0,
-        "001": 0,
-        "010": 0,
-        "011": 0,
-        "111": 0,
-        "211": 0,
-    }
 
     for i in range(num_of_tacts):
         queueing_system.tact()
@@ -35,7 +27,6 @@ if __name__ == '__main__':
 
         print(status, num_of_serviced)
 
-        states[status] += 1
         lmbd += request
         true_serviced += num_of_serviced
         queue_sizes.append(int(status[0]))
@@ -72,6 +63,3 @@ if __name__ == '__main__':
     print("Wс:", W_system)
     print("K_кан1:", line_1_busy / num_of_tacts)
     print("K_кан2:", line_2_busy / num_of_tacts)
-
-    # for k in states:
-    #     print(k, states[k]/num_of_tacts)
