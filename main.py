@@ -14,11 +14,13 @@ if __name__ == '__main__':
     lmbd = 0
     queue_sizes = []
     requests_in_system = []
+    queue_times = []
+    system_times = []
     line_1_busy = 0
     line_2_busy = 0
 
     num_of_rejected = 0
-    d = {
+    states = {
         "000": 0,
         "001": 0,
         "010": 0,
@@ -28,38 +30,48 @@ if __name__ == '__main__':
     }
 
     for i in range(num_of_tacts):
-        status, num_of_serviced, is_new_request, rejected = queueing_system.tact()
+        queueing_system.tact()
+        status, request, num_of_serviced, rejected, time_in_queue, time_in_system = queueing_system.get_last_tact_log()
+
         print(status, num_of_serviced)
+
+        states[status] += 1
+        lmbd += request
+        true_serviced += num_of_serviced
+        queue_sizes.append(int(status[0]))
+
+        queue_times += time_in_queue
+        system_times += time_in_system
+
         requests_in_system.append(int(status[0]) + int(status[1]) + int(status[2]))
-        d[status] += 1
+
         if int(status[1]) == 1:
             line_1_busy += 1
         if int(status[2]) == 1:
             line_2_busy += 1
-        queue_sizes.append(int(status[0]))
-        # if num_of_serviced:
-        true_serviced += num_of_serviced
-        lmbd += is_new_request
+
         if rejected:
             num_of_rejected += 1
 
-
-    A = true_serviced/num_of_tacts
-    print("A:", A)
-    lmbd = lmbd/num_of_tacts
-    print("lambda:", lmbd)
-    Q = A/lmbd
-    print("Q:", Q)
-    print("Prej:", num_of_rejected/num_of_tacts)
-    print("Pотк:", 1-Q)
+    A = true_serviced / num_of_tacts
+    lmbd /= num_of_tacts
+    P_rej = num_of_rejected / num_of_tacts
+    Q = 1 - P_rej
     L_queue = math_expectation(queue_sizes)
+    L_system = math_expectation(requests_in_system)
+    W_queue = math_expectation(queue_times)
+    W_system = math_expectation(system_times)
+
+    print("A:", A)
+    print("lambda:", lmbd)
+    print("Q:", Q)
+    print("Pотк:", P_rej)
     print("Lоч:", L_queue)
-    L_s = math_expectation(requests_in_system)
-    print("Lc:", L_s)
+    print("Lc:", L_system)
     print("Wоч:", L_queue / A)
-    print("Wс:", L_s / A)
+    print("Wс:", W_system)
     print("K_кан1:", line_1_busy / num_of_tacts)
     print("K_кан2:", line_2_busy / num_of_tacts)
 
-    for k in d:
-        print(k, d[k]/num_of_tacts)
+    # for k in states:
+    #     print(k, states[k]/num_of_tacts)
