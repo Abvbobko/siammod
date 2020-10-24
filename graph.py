@@ -8,22 +8,24 @@ class Request:
     def tact(self):
         self.time += 1
 
+    def get_time(self):
+        return self.time
+
 
 class ServiceLine:
     def __init__(self):
-        # self.free_status = 0
         self.request = None
 
     def give_work(self, request):
-        # self.free_status = 1
         if not self.request:
             self.request = request
         else:
             raise Exception("Service line is busy!")
 
     def free(self):
+        request = self.request
         self.request = None
-        # self.free_status = 0
+        return request
 
     def get_status(self):
         if self.request:
@@ -65,6 +67,7 @@ class QueueingSystem:
         self.queue = Queue(queue_size)
         self.service_line_1 = ServiceLine()
         self.service_line_2 = ServiceLine()
+        self.last_tact_info = None
 
     @staticmethod
     def event(event_probability):
@@ -78,61 +81,82 @@ class QueueingSystem:
         return [service_line.get_status() for service_line in service_lines]
 
     def tact(self):
+        self.last_tact_info = {
+            'status': 0,
+            'request': 0,
+            'num_of_serviced': 0,
+            'is_rejected': False,
+            'time_in_queue': [],
+            'time_in_system': []
+        }
+
         request = self.source()
-        num_of_serviced = 0
-        is_rejected = False
         sl_1_status, sl_2_status = self.get_service_lines_statuses([self.service_line_1, self.service_line_2])
-        # sl_1_status = self.service_line_1.get_status()
-        # sl_2_status = self.service_line_2.get_status()
         self.queue.tact()
         self.service_line_1.tact()
         self.service_line_2.tact()
+
+        # run service lines
         if sl_1_status == 1 and self.event(1 - self.p1):
-            self.service_line_1.free()
+            self.last_tact_info['time_in_system'].append(self.service_line_1.free().get_time())
             sl_1_status = 0
-            num_of_serviced += 1
+            self.last_tact_info['num_of_serviced'] += 1
 
         if sl_2_status == 1 and self.event(1 - self.p2):
-            self.service_line_2.free()
+            self.last_tact_info['time_in_system'].append(self.service_line_2.free().get_time())
             sl_2_status = 0
-            num_of_serviced += 1
+            self.last_tact_info['num_of_serviced'] += 1
 
+        # run queue shift
         queue_size = self.queue.get_current_size()
-        if queue_size == 0:
-            pass
-        elif queue_size == 1:
+        if queue_size == 1:
             if sl_1_status == 0:
-                self.service_line_1.give_work(self.queue.pop())
+                request_from_queue = self.queue.pop()
+                self.last_tact_info['time_in_queue'].append(request_from_queue.get_time())
+                self.service_line_1.give_work(request_from_queue)
                 sl_1_status = 1
             elif sl_2_status == 0:
-                self.service_line_2.give_work(self.queue.pop())
+                request_from_queue = self.queue.pop()
+                self.last_tact_info['time_in_queue'].append(request_from_queue.get_time())
+                self.service_line_2.give_work(request_from_queue)
                 sl_2_status = 1
         elif queue_size == 2:
             if sl_1_status == 0:
-                self.service_line_1.give_work(self.queue.pop())
+                request_from_queue = self.queue.pop()
+                self.last_tact_info['time_in_queue'].append(request_from_queue.get_time())
+                self.service_line_1.give_work(request_from_queue)
                 sl_1_status = 1
             if sl_2_status == 0:
-                self.service_line_2.give_work(self.queue.pop())
+                request_from_queue = self.queue.pop()
+                self.last_tact_info['time_in_queue'].append(request_from_queue.get_time())
+                self.service_line_2.give_work(request_from_queue)
                 sl_2_status = 1
 
+        # process request
         if request:
+            self.last_tact_info['request'] = 1
             if sl_1_status == 0:
                 self.service_line_1.give_work(request)
-                # is_request_serviced = True
                 sl_1_status = 1
             elif sl_2_status == 0:
                 self.service_line_2.give_work(request)
-                # is_request_serviced = True
                 sl_2_status = 1
             elif not self.queue.push(request):
-                is_rejected = True
-                # is_request_serviced = True
+                self.last_tact_info['is_rejected'] = True
+        else:
+            self.last_tact_info['request'] = 0
 
+        self.last_tact_info['status'] = f'{self.queue.get_current_size()}{sl_1_status}{sl_2_status}'
+        return self.last_tact_info['status']
+
+    def get_last_tact_log(self):
         return (
-            f'{self.queue.get_current_size()}{sl_1_status}{sl_2_status}',
-            num_of_serviced,
-            request,
-            is_rejected
+            self.last_tact_info['status'],
+            self.last_tact_info['request'],
+            self.last_tact_info['num_of_serviced'],
+            self.last_tact_info['is_rejected'],
+            self.last_tact_info['time_in_queue'],
+            self.last_tact_info['time_in_system']
         )
 
     def source(self):
