@@ -11,7 +11,9 @@ def hist(x, bins=20):
 
 
 def math_expectation(x):
-    return sum(x)/len(x)
+    if len(x) > 0:
+        return sum(x)/len(x)
+    return None
 
 
 def dispersion(x):
