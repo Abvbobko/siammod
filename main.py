@@ -20,12 +20,13 @@ if __name__ == '__main__':
     line_2_busy = 0
 
     num_of_rejected = 0
+    num_of_requests = 0
 
     for i in range(num_of_tacts):
         queueing_system.tact()
         status, request, num_of_serviced, rejected, time_in_queue, time_in_system = queueing_system.get_last_tact_log()
 
-        print(status, num_of_serviced)
+        # print(status, num_of_serviced)
 
         lmbd += request
         true_serviced += num_of_serviced
@@ -43,10 +44,12 @@ if __name__ == '__main__':
 
         if rejected:
             num_of_rejected += 1
+        elif request == 1:
+            num_of_requests += 1
 
     A = true_serviced / num_of_tacts
     lmbd /= num_of_tacts
-    P_rej = num_of_rejected / num_of_tacts
+    P_rej = num_of_rejected / (num_of_requests + num_of_rejected)
     Q = 1 - P_rej
     L_queue = math_expectation(queue_sizes)
     L_system = math_expectation(requests_in_system)
@@ -59,7 +62,7 @@ if __name__ == '__main__':
     print("Pотк:", P_rej)
     print("Lоч:", L_queue)
     print("Lc:", L_system)
-    print("Wоч:", L_queue / A)
+    print("Wоч:", W_queue)
     print("Wс:", W_system)
     print("K_кан1:", line_1_busy / num_of_tacts)
     print("K_кан2:", line_2_busy / num_of_tacts)

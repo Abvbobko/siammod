@@ -68,6 +68,7 @@ class QueueingSystem:
         self.service_line_1 = ServiceLine()
         self.service_line_2 = ServiceLine()
         self.last_tact_info = None
+        self.request_number = 0
 
     @staticmethod
     def event(event_probability):
@@ -145,6 +146,10 @@ class QueueingSystem:
                 self.last_tact_info['is_rejected'] = True
         else:
             self.last_tact_info['request'] = 0
+
+        if request:
+            self.request_number += 1
+            print(self.request_number, self.last_tact_info['is_rejected'])
 
         self.last_tact_info['status'] = f'{self.queue.get_current_size()}{sl_1_status}{sl_2_status}'
         return self.last_tact_info['status']
