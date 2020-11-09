@@ -1,68 +1,30 @@
 from graph import QueueingSystem
 from evaluator import math_expectation
+import generator
 
 if __name__ == '__main__':
-    num_of_tacts = int(input("Enter number of tacts: "))
-    queue_size = int(input("Enter queue size: "))
-    ro = float(input("Enter ρ: "))
-    p1 = float(input("Enter π1: "))
-    p2 = float(input("Enter π2: "))
-    queueing_system = QueueingSystem(p1=p1, p2=p2, ro=ro, queue_size=queue_size)
+    num_of_times = int(input("Enter size of one thread: ")) # ToDO: Заменить на размер одного потока
+    queue_size = int(input("Enter queue size: ")) # ToDo: размер очереди с приоритетами?
+    lmbd = float(input("Enter λ: "))
+    u1 = float(input("Enter μ1: "))
+    u2 = float(input("Enter μ2: "))
+    p = float(input("Enter p: "))
+    queueing_system = QueueingSystem(lmbd=lmbd, u1=u1, u2=u2, p=p, queue_size=queue_size)
+    source_thread = generator.generate_thread(num_of_times=num_of_times, lmbd=lmbd, label='l')
+    service_line_1_thread = generator.generate_thread(num_of_times=num_of_times, lmbd=u1, label='u1')
+    service_line_2_thread = generator.generate_thread(num_of_times=num_of_times, lmbd=u2, label='u2')
 
-    tact_number = 0
-    true_serviced = 0
-    lmbd = 0
-    queue_sizes = []
-    requests_in_system = []
-    queue_times = []
-    system_times = []
-    line_1_busy = 0
-    line_2_busy = 0
+    thread = generator.combiner([source_thread, service_line_1_thread, service_line_2_thread])
+    for t in thread:
+        queueing_system.tact(t[1])
 
-    num_of_rejected = 0
-    num_of_requests = 0
+    p_rej_1 = queueing_system.request_1_rejected()/(
+                queueing_system.request_1_processed()+queueing_system.request_1_rejected()
+    )
 
-    for i in range(num_of_tacts):
-        queueing_system.tact()
-        status, request, num_of_serviced, rejected, time_in_queue, time_in_system = queueing_system.get_last_tact_log()
+    p_rej_2 = queueing_system.request_2_rejected() / (
+            queueing_system.request_2_processed() + queueing_system.request_2_rejected()
+    )
 
-        # print(status, num_of_serviced)
-
-        lmbd += request
-        true_serviced += num_of_serviced
-        queue_sizes.append(int(status[0]))
-
-        queue_times += time_in_queue
-        system_times += time_in_system
-
-        requests_in_system.append(int(status[0]) + int(status[1]) + int(status[2]))
-
-        if int(status[1]) == 1:
-            line_1_busy += 1
-        if int(status[2]) == 1:
-            line_2_busy += 1
-
-        if rejected:
-            num_of_rejected += 1
-        elif request == 1:
-            num_of_requests += 1
-
-    A = true_serviced / num_of_tacts
-    lmbd /= num_of_tacts
-    P_rej = num_of_rejected / (num_of_requests + num_of_rejected)
-    Q = 1 - P_rej
-    L_queue = math_expectation(queue_sizes)
-    L_system = math_expectation(requests_in_system)
-    W_queue = math_expectation(queue_times)
-    W_system = math_expectation(system_times)
-
-    print("A:", A)
-    print("lambda:", lmbd)
-    print("Q:", Q)
-    print("Pотк:", P_rej)
-    print("Lоч:", L_queue)
-    print("Lc:", L_system)
-    print("Wоч:", W_queue)
-    print("Wс:", W_system)
-    print("K_кан1:", line_1_busy / num_of_tacts)
-    print("K_кан2:", line_2_busy / num_of_tacts)
+    print("Pотк1: ", p_rej_1)
+    print("Pотк2: ", p_rej_2)
