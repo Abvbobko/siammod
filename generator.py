@@ -10,7 +10,7 @@ def thread_to_timeline(thread):
     if len(thread) > 1:
         result_thread = [thread[0]]
         for i in range(1, len(thread)):
-            result_thread.append(thread[i] + thread[i-1])
+            result_thread.append(thread[i] + result_thread[i-1])
     return result_thread
 
 

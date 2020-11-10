@@ -2,8 +2,10 @@ from graph import QueueingSystem
 from evaluator import math_expectation
 import generator as gen
 
+import matplotlib.pyplot as plt
+
 if __name__ == '__main__':
-    num_of_times = 100000# int(input("Enter size of one thread: ")) # ToDO: Заменить на размер одного потока
+    num_of_times = 1000000# int(input("Enter size of one thread: ")) # ToDO: Заменить на размер одного потока
     queue_size = 1# int(input("Enter queue size: ")) # ToDo: размер очереди с приоритетами?
     lmbd = 4# float(input("Enter λ: "))
     u1 = 2# float(input("Enter μ1: "))
@@ -18,6 +20,7 @@ if __name__ == '__main__':
     thread = gen.combiner([source_thread, service_line_1_thread, service_line_2_thread])
 
     for t in thread:
+        # print(t[1])
         queueing_system.tact(t[1])
 
     p_rej_1 = queueing_system.request_1_rejected()/(
@@ -33,3 +36,4 @@ if __name__ == '__main__':
 
     for k in queueing_system.states:
         print(f'{k}: {queueing_system.states[k]/len(thread)}')
+
