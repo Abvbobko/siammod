@@ -3,7 +3,7 @@ import random
 
 class Request:
     def __init__(self, priority):
-        self.type = type
+        self.type = priority
 
     def get_type(self):
         return self.type
@@ -45,7 +45,7 @@ class Queue:
                 rejected_request = self.queue[i]
                 self.queue[i] = request
                 return rejected_request
-        return False
+        return request
 
     def pop(self, priority):
         for i in range(len(self.queue)):
@@ -56,6 +56,11 @@ class Queue:
 
     def get_current_size(self):
         return len(self.queue)
+
+    def type_of_item(self):
+        if len(self.queue) > 0:
+            return self.queue[0].get_type()
+        return 0
 
 
 class QueueingSystem:
@@ -71,6 +76,11 @@ class QueueingSystem:
         self.processed_2 = 0
         self.rejected_1 = 0
         self.rejected_2 = 0
+
+        self.num_of_1 = 0
+        self.num_of_2 = 0
+
+        self.states = {}
         # self.last_tact_info = None
         # self.request_number = 0
 
@@ -89,15 +99,24 @@ class QueueingSystem:
         # tact_event in ['l', 'u1', 'u2']
         # rejected_request_type = None
         sl_1_status, sl_2_status = self.get_service_lines_statuses([self.service_line_1, self.service_line_2])
+
         if tact_event == 'l':
             request = self.source()
+
+            ##################################################
+            if request.get_type() == 1:
+                self.num_of_1 += 1
+            elif request.get_type() == 2:
+                self.num_of_2 += 1
+            ##################################################
+
             if (request.get_type() == 1) and (sl_1_status == 0):
                 self.service_line_1.give_work(request)
             elif (request.get_type() == 2) and (sl_2_status == 0):
-                self.service_line_1.give_work(request)
+                self.service_line_2.give_work(request)
             else:
                 push_result = self.queue.push(request)
-                if isinstance(push_result, Request) or not push_result:
+                if isinstance(push_result, Request):
                     rejected_request_type = push_result.get_type()
                     if rejected_request_type == 1:
                         self.rejected_1 += 1
@@ -117,6 +136,16 @@ class QueueingSystem:
             request_from_queue = self.queue.pop(2)
             if request_from_queue:
                 self.service_line_2.give_work(request_from_queue)
+
+
+        #####DEBUG###################################
+        state = f'{self.queue.type_of_item()}{sl_1_status}{sl_2_status}'
+        if state in self.states:
+            self.states[state] += 1
+        else:
+            self.states[state] = 1
+        ###############################################
+
 
     def request_1_processed(self):
         return self.processed_1
