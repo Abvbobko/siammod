@@ -77,12 +77,7 @@ class QueueingSystem:
         self.rejected_1 = 0
         self.rejected_2 = 0
 
-        self.num_of_1 = 0
-        self.num_of_2 = 0
-
         self.states = {}
-        # self.last_tact_info = None
-        # self.request_number = 0
 
     @staticmethod
     def event(event_probability):
@@ -96,19 +91,10 @@ class QueueingSystem:
         return [service_line.get_status() for service_line in service_lines]
 
     def tact(self, tact_event):
-        # tact_event in ['l', 'u1', 'u2']
-        # rejected_request_type = None
         sl_1_status, sl_2_status = self.get_service_lines_statuses([self.service_line_1, self.service_line_2])
 
         if tact_event == 'l':
             request = self.source()
-
-            ##################################################
-            if request.get_type() == 1:
-                self.num_of_1 += 1
-            elif request.get_type() == 2:
-                self.num_of_2 += 1
-            ##################################################
 
             if (request.get_type() == 1) and (sl_1_status == 0):
                 self.service_line_1.give_work(request)
